@@ -1,0 +1,91 @@
+---
+title: "US Arrests-hierarchical clustering"
+output: pdf_document
+---
+
+
+View the data
+```{r}
+USArrests
+```
+
+
+
+All the state names are printed here:
+
+```{r}
+states <- row.names(USArrests)
+states
+```
+5(a) Using hierarchical clustering with complete linkage and Euclidean distance, cluster the
+states
+
+Ans: Using the complete linkage and Euclidean distance, the clustering results in the following dendrogram as shown in the picture:
+
+```{r}
+data_d <- dist(USArrests, method="euclidean")
+data_hc <- hclust(data_d, method='complete')
+plot(hclust(data_d, method = "complete"))
+```
+
+5(b) Cut the dendrogram at a height that results in three distinct clusters. Interpret the clusters.
+Which states belong to which clusters?
+
+```{r}
+data_ct <- cutree(data_hc, k=3)
+plot(hclust(data_d, method = "complete"))
+data_hc %>% cutree(k = 3) -> cluster_no_Scale #using cutree method to cut the dendrogram at a height that results in three clusters
+cluster_no_Scale #gives the statename and the cluster it belongs to
+```
+
+We get the above 3 clusters using cutree method.
+
+
+5(c) Hierarchically cluster the states using complete linkage and Euclidean distance, after
+scaling the variables to have standard deviation one.
+Ans: Using the complete linkage and Euclidean distance on the scaled data, the clustering results in the following dendrogram as shown in the picture:
+
+```{r}
+# scaling the features
+data_scaled <- scale(USArrests) 
+
+#repeating the same steps as 5(a) and 5(b) for scaled data
+
+data_scaled_d <- dist(data_scaled, method="euclidean") 
+data_scaled_hc <- hclust(data_scaled_d, method='complete')
+data_scaled_ct <- cutree(data_scaled_hc, k=3)
+plot(hclust(data_scaled_d, method = "complete"))
+
+```
+
+
+5(d) What effect does scaling the variables have on the hierarchical clustering obtained? In
+your opinion, should the variables be scaled before the inter-observation dissimilarities are
+computed? Provide a justification for your answer.
+
+Ans: After scaling the variables clearly, we get a different set of clustering. Using cutree method on scaled data for 3 clusters:
+
+```{r}
+data_scaled_hc %>% cutree(k = 3) -> cluster_with_scale
+cluster_with_scale #gives the statename and the cluster it belongs to in case of the scaled data
+```
+
+Compare this with the cluster on data that is not scaled:  
+```{r}
+cluster_no_Scale #gives the statename and the cluster it belongs to in case of the data that is not scaled
+```
+
+The table summarizes these differences between the two clusters:
+
+```{r}
+table(cluster_no_Scale,cluster_with_scale)  #table summarizing how many states are in each cluster before scaling and after scaling
+
+```
+
+Scaling the features, clearly affects the clusters. States that belonged to one cluster before scaling, belonged to another cluster after scaling. It is important therefore to perform scaling before we do the clustering because the scaling affects the distance between the observations and each observation may be different from others in terms of units. For example, below is a sample of the data.
+
+```{r}
+USArrests
+```
+
+We can see that “UrbanPop” has very high numbers such as 335 where as “Murder” has numbers as small as 2.2, which are very far apart. The `UrbanPop` variable measures the percentage of the population in each state living in an urban area, which is not a comparable number to the number of Murder or Rape in each state per 100,000 individuals. When distance is calculated between observations, due to such highly skewed nature, the distance will naturally be calculated incorrectly. If we failed to scale the variables before performing clustering, then clustering would be driven by the `Assault` variable, since it has by far the largest mean and variance. Therefore, it is always a best practice to first scale the data before performing clustering.
